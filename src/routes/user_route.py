@@ -57,4 +57,4 @@ async def add_link(body: AddedLink):
             cut_link=str(uuid4()).lower()[:8],
         )
 
-    return "Url berhasil didaftarkan."
+    return {"message": "Url berhasil didaftarkan."}
