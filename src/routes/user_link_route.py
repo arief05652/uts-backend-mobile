@@ -18,7 +18,7 @@ class UserLink(BaseModel):
     url_id: str
     original_link: str
     cut_link: str
-    password: str
+    password: str | None = None
     total_click: int
     create_at: datetime
     modified_at: datetime
