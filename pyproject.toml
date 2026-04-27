@@ -13,6 +13,7 @@ dependencies = [
     "python-multipart>=0.0.26",
     "qrcode[pil]>=8.2",
     "tortoise-orm[asyncmy]>=0.25.4",
+    "user-agents>=2.2.0",
 ]
 
 [tool.aerich]
