@@ -6,8 +6,9 @@ from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from tortoise.functions import Count as CountFunc
 
-from src.models import Urls
+from src.models import Count, Urls
 
 router = APIRouter()
 
@@ -18,23 +19,67 @@ class UserLink(BaseModel):
     original_link: str
     cut_link: str
     password: str
+    total_click: int
     create_at: datetime
     modified_at: datetime
 
 
 class Detail(BaseModel):
     total: int
+    limit: int
+    offset: int
     link_detail: list[UserLink]
 
 
 @router.get("/get_user_link/", response_model=Detail)
-async def get_user_link(device_id: str):
-    data = await Urls.filter(user__user_device_id=device_id)
+async def get_user_link(device_id: str, limit: int = 2, offset: int = 0):
+    query = Urls.filter(user__user_device_id=device_id)
 
-    if len(data) < 1:
+    total = await query.count()
+
+    if total == 0:
         raise HTTPException(404, "Data tidak ditemukan.")
 
-    return {"total": len(data), "link_detail": data}
+    data = (
+        await query.select_related("user")
+        .annotate(total_click=CountFunc("counts"))
+        .order_by("-create_at")
+        .limit(limit)
+        .offset(offset)
+    )
+
+    result = [
+        UserLink(
+            user_id=url.user.user_id,
+            url_id=url.url_id,
+            original_link=url.original_link,
+            cut_link=url.cut_link,
+            password=url.password,
+            total_click=url.total_click,
+            create_at=url.create_at,
+            modified_at=url.modified_at,
+        )
+        for url in data
+    ]
+
+    return {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "link_detail": result,
+    }
+
+
+@router.get("/get_link_detail")
+async def get_detail_link(url_id: str, limit: int = 2, offset: int = 0):
+    data = await Count.filter(url__url_id=url_id).limit(limit).offset(offset)
+
+    return {
+        "total": len(data),
+        "limit": limit,
+        "offset": offset,
+        "data": data,
+    }
 
 
 @router.delete("/delete_link", status_code=200)
