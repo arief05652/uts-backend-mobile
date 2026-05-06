@@ -1,5 +1,4 @@
 from typing import TYPE_CHECKING
-from uuid import uuid4
 
 from tortoise import Model, fields
 
@@ -8,7 +7,7 @@ if TYPE_CHECKING:
 
 
 class Count(Model):
-    count_id = fields.CharField(max_length=36, default=uuid4(), primary_key=True)
+    count_id = fields.CharField(max_length=36, primary_key=True)
     url: fields.ForeignKeyRelation["Urls"] = fields.ForeignKeyField(
         "models.Urls", related_name="counts"
     )
