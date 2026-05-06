@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import uuid4
 
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -15,6 +16,7 @@ template = Jinja2Templates(directory="src/templates")
 @router.get("/{cut_url}", response_class=HTMLResponse)
 async def redirect_web(req: Request, cut_url: str, status: Optional[str] = None):
     url = await Urls.get_or_none(cut_link=cut_url)
+    unique_id = str(uuid4())
 
     if url is None:
         return template.TemplateResponse(request=req, name="not_found.html")
@@ -33,7 +35,11 @@ async def redirect_web(req: Request, cut_url: str, status: Optional[str] = None)
         else:
             data = parse(req.headers.get("user-agent"))
 
-            await Count.create(url_id=url.url_id, user_agent=f"{data.browser.family}")
+            await Count.create(
+                count_id=unique_id,
+                url_id=url.url_id,
+                user_agent=f"{data.browser.family}",
+            )
             return RedirectResponse(url=url.original_link, status_code=302)
 
 
@@ -42,10 +48,13 @@ async def locked_reference(
     req: Request, cut_url: str, url_id: str, password: str | None = Form(None)
 ):
     valid = await Urls.get(url_id=url_id)
+    unique_id = str(uuid4())
 
     if password is None or password != valid.password:
         return RedirectResponse(f"/{cut_url}?status=salah", 303)
 
     data = parse(req.headers.get("user-agent"))
-    await Count.create(url_id=valid.url_id, user_agent=f"{data.browser.family}")
+    await Count.create(
+        count_id=unique_id, url_id=valid.url_id, user_agent=f"{data.browser.family}"
+    )
     return RedirectResponse(valid.original_link, 302)

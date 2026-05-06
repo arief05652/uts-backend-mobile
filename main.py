@@ -18,10 +18,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     lifespan=lifespan,
-    redirect_slashes=False,
-    openapi_url=None,
-    docs_url=None,
-    redoc_url=None,
+    # redirect_slashes=False,
+    # openapi_url=None,
+    # docs_url=None,
+    # redoc_url=None,
     swagger_ui_oauth2_redirect_url=None,
 )
 
