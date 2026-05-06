@@ -34,7 +34,7 @@ async def redirect_web(req: Request, cut_url: str, status: Optional[str] = None)
             data = parse(req.headers.get("user-agent"))
 
             await Count.create(url_id=url.url_id, user_agent=f"{data.browser.family}")
-            return RedirectResponse(url=url.original_link)
+            return RedirectResponse(url=url.original_link, status_code=302)
 
 
 @router.post("/unlock/{cut_url}/", response_class=HTMLResponse)
@@ -48,4 +48,4 @@ async def locked_reference(
 
     data = parse(req.headers.get("user-agent"))
     await Count.create(url_id=valid.url_id, user_agent=f"{data.browser.family}")
-    return RedirectResponse(valid.original_link, 303)
+    return RedirectResponse(valid.original_link, 302)
